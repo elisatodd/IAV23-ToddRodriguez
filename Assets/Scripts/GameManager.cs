@@ -97,8 +97,6 @@ namespace IAV23.ElisaTodd
             if (fRText != null)
                 fRText.text = (((int)(m_lastFramerate * 100 + .5) / 100.0)).ToString();
 
-            if (player != null && (player.transform.position - exit.transform.position).magnitude < 0.5f)
-                goToScene("Menu");
 
             //Input
             if (Input.GetKeyDown(KeyCode.R))
@@ -111,20 +109,24 @@ namespace IAV23.ElisaTodd
 
         private void FindGO()
         {
-            if (SceneManager.GetActiveScene().name == "Menu") // Nombre de escena que habría que llevar a una constante
-            {
-                label = GameObject.FindGameObjectWithTag("DDLabel").GetComponent<Text>();
-                label2 = GameObject.FindGameObjectWithTag("MinoLabel").GetComponent<Text>();
-            }
-            else if (SceneManager.GetActiveScene().name == "Labyrinth") // Nombre de escena que habría que llevar a una constante
-            {
-                fRText = GameObject.FindGameObjectWithTag("Framerate").GetComponent<Text>();
-                heuristicText = GameObject.FindGameObjectWithTag("Heuristic").GetComponent<Text>();
-                //theseusGraph = GameObject.FindGameObjectWithTag("TesterGraph").GetComponent<TheseusGraph>();
-                exitSlab = GameObject.FindGameObjectWithTag("Exit");
-                startSlab = GameObject.FindGameObjectWithTag("Start");
-                player = GameObject.Find("Avatar");
-            }
+            //if (SceneManager.GetActiveScene().name == "Menu") // Nombre de escena que habría que llevar a una constante
+            //{
+            //    label = GameObject.FindGameObjectWithTag("DDLabel").GetComponent<Text>();
+            //    label2 = GameObject.FindGameObjectWithTag("MinoLabel").GetComponent<Text>();
+            //}
+            //else if (SceneManager.GetActiveScene().name == "Labyrinth") // Nombre de escena que habría que llevar a una constante
+            //{
+            //    fRText = GameObject.FindGameObjectWithTag("Framerate").GetComponent<Text>();
+            //    heuristicText = GameObject.FindGameObjectWithTag("Heuristic").GetComponent<Text>();
+            //    //theseusGraph = GameObject.FindGameObjectWithTag("TesterGraph").GetComponent<TheseusGraph>();
+            //    exitSlab = GameObject.FindGameObjectWithTag("Exit");
+            //    startSlab = GameObject.FindGameObjectWithTag("Start");
+            //    player = GameObject.Find("Avatar");
+            //}
+
+            player = GameObject.Find("Avatar");
+            startSlab = GameObject.Find("StartSlab");
+            exitSlab = GameObject.Find("ExitSlab");
         }
 
         public GameObject GetPlayer()

@@ -1,0 +1,34 @@
+type octile
+height 30
+width 30
+map
+TTeTTTTTTTTTTTTTTTTTTTTTTTTTTT
+T..T..T..T..............T....T
+T..T..T..T..TTTT..TTTTTTTTT..T
+T........T.....T.............T
+TTTT..TTTTTTT..TTTT..TTTT..TTT
+T...........T..T..T..T.......T
+TTTT..TTTT..T..T..T..TTTT....T
+T........T...........T.......T
+T..TTTT..TTTTTTTTTT..TTTT..TTT
+T........T........T.....T....T
+TTTT..TTTT..T..TTTTTTT..T....T
+T........T..T...........T....T
+T..TTTTTTTTTT..TTTTTTT..T..TTT
+T..T........T................T
+T..TTTT..TTTTTTTTTT..TTTT.T..T
+T...........T...........T.T..T
+TTTTTTTTTT..T..TTTT..TTTT.T..T
+T...........T..T..T..T.......T
+T...TTTTTT..T..T..T..T..TTTTTT
+T.................T..T.......T
+T..T.....T.....T.....T..T....T
+TTTT..TTTTTTT..TTTT..T..TTT..T
+T..T........T...........T....T
+T..TTTTTTT..TTTT..TTTTTT..TTTT
+T..............T..T..........T
+T..T..T..TTTTTTTTTT..T..TTT..T
+T.....T..T..T.....T..........T
+T..TTTT..T..T..TTTTTTTTTTTT..T
+T...........................sT
+TTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
