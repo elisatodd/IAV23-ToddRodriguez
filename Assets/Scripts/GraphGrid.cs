@@ -21,6 +21,11 @@ namespace IAV23.ElisaTodd
         public GameObject endPrefab;
         public GameObject pillarPrefab;
 
+        // obstacles
+        public GameObject rockPrefab;
+        public GameObject treePrefab;
+        public GameObject housePrefab;
+
         public GameObject obstaclePrefab;
 
         public string mapsDir = "Maps"; // Directorio por defecto
@@ -31,7 +36,6 @@ namespace IAV23.ElisaTodd
         public float defaultCost = 1f;
         [Range(0, Mathf.Infinity)]
         public float maximumCost = Mathf.Infinity;
-
 
         GameObject[] vertexObjs;
 
@@ -72,16 +76,20 @@ namespace IAV23.ElisaTodd
                     Vector3 scale = Vector3.zero;
 
                     line = strmRdr.ReadLine(); // non-important line
-                    line = strmRdr.ReadLine(); // height
+                    line = strmRdr.ReadLine(); // read height from file
                     numRows = int.Parse(line.Split(' ')[1]);
-                    line = strmRdr.ReadLine(); // width
+                    line = strmRdr.ReadLine(); // read width from file
                     numCols = int.Parse(line.Split(' ')[1]);
                     line = strmRdr.ReadLine(); // "map" line in file
 
+                    // list with all vertices in the map
                     vertices = new List<Vertex>(numRows * numCols);
                     neighbourVertex = new List<List<Vertex>>(numRows * numCols);
+                    // references to the GameObjects
                     vertexObjs = new GameObject[numRows * numCols];
+                    // posiciones que tienen elementos
                     mapVertices = new bool[numRows, numCols];
+                    // each vertex has a different cost, depends on what the file determines
                     costsVertices = new float[numRows, numCols];
 
                     // Leer mapa
@@ -91,28 +99,60 @@ namespace IAV23.ElisaTodd
                         for (j = 0; j < numCols; j++)
                         {
                             bool isGround = true;
+
                             if (line[j] == 'e')
+                            { // exit cell
                                 GameManager.instance.SetExit(j, i, cellSize);
+                            }
                             else if (line[j] == 's')
+                            { // start cell
                                 GameManager.instance.SetStart(j, i, cellSize);
+                            }
+                            else if (line[j] == 'g')
+                            { // gasoline in this cell
+                            }
+                            else if (line[j] == 'r')
+                            { // rock in this cell
+
+                            }
+                            else if (line[j] == 't')
+                            { // tree in this cell
+
+                            }
+                            else if (line[j] == 'h')
+                            { // house in this cell
+
+                            }
+                            else if (line[j] == 'V')
+                            { // vertical station in this cell
+
+                            }
+                            else if (line[j] == 'H')
+                            { // horizontal station in this cell
+
+                            }
                             else if (line[j] == 'T')
+                            {
                                 isGround = false;
+                            }
+
                             mapVertices[i, j] = isGround;
                         }
                     }
 
-                    //Generamos terreno
+                    // Generamos terreno
                     for (i = 0; i < numRows; i++)
                     {
                         for (j = 0; j < numCols; j++)
                         {
                             position.x = j * cellSize;
                             position.z = i * cellSize;
+
                             id = GridToId(j, i);
 
-                            if (mapVertices[i, j])
+                            if (mapVertices[i, j]) // normal slab
                                 vertexObjs[id] = Instantiate(vertexPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
-                            else
+                            else // wall slab
                                 vertexObjs[id] = WallInstantiate(position, i, j);
 
                             vertexObjs[id].name = vertexObjs[id].name.Replace("(Clone)", id.ToString());

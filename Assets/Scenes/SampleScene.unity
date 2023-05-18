@@ -152,7 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2dd6627f298af2144ab4e09090cca0f9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  vertexPrefab: {fileID: 100000, guid: a0702439d05d5334e885e87aeba2a438, type: 3}
+  vertexPrefab: {fileID: 100000, guid: b96dbd95abcffe349b5a717e6441b703, type: 3}
   path: []
   wallPrefab1: {fileID: 100000, guid: 037cde6c6f19b0645a5ae270e3c224f0, type: 3}
   wallPrefab2: {fileID: 100000, guid: ddf07f93d6087ee409b40d021c70a4ee, type: 3}
@@ -162,6 +162,9 @@ MonoBehaviour:
   turnPrefab: {fileID: 100000, guid: af7d4428dcb5c9e48a10b20ae52848c3, type: 3}
   endPrefab: {fileID: 100000, guid: cc300cf5e27078e4a959ca84548dc14e, type: 3}
   pillarPrefab: {fileID: 100000, guid: 2de513a7b92cf014eadb891bcf950bc1, type: 3}
+  rockPrefab: {fileID: 100000, guid: 520ace5cf365b4342aaa666c1f8c1e3a, type: 3}
+  treePrefab: {fileID: 100000, guid: 330809bb9ccffcf45bc96f2975be6780, type: 3}
+  housePrefab: {fileID: 100000, guid: 1ba244956c8352a44aec26952aee9741, type: 3}
   obstaclePrefab: {fileID: 100000, guid: 3274a75cff2d2de4580a81dd713edc37, type: 3}
   mapsDir: Maps
   mapName: 10x10.map
