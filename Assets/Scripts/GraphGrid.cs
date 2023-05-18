@@ -34,7 +34,7 @@ namespace IAV23.ElisaTodd
         public GameObject obstaclePrefab;
 
         public string mapsDir = "Maps"; // Directorio por defecto
-        public string mapName = "10x10.map"; // Fichero por defecto
+        [SerializeField] string mapName = "Train1.map"; // Fichero por defecto
         public bool get8Vicinity = false;
         public float cellSize = 1f;
         [Range(0, Mathf.Infinity)]
@@ -57,11 +57,6 @@ namespace IAV23.ElisaTodd
             Exit,
             Empty,
             Wall
-        }
-
-        private void Awake()
-        {
-            mapName = GameManager.instance.getSize() + ".map";
         }
 
         public int GridToId(int x, int y)
@@ -118,17 +113,17 @@ namespace IAV23.ElisaTodd
                         line = strmRdr.ReadLine();
                         for (j = 0; j < numCols; j++)
                         {
-                            if (line[j] == 'e')
+                            if (line[j] == 'E')
                             { // exit cell
                                 GameManager.instance.SetExit(j, i, cellSize);
                                 readMap[i, j] = CellType.Exit;
                             }
-                            else if (line[j] == 's')
+                            else if (line[j] == 'S')
                             { // start cell
                                 GameManager.instance.SetStart(j, i, cellSize);
                                 readMap[i, j] = CellType.Ground;
                             }
-                            else if (line[j] == 'g')
+                            else if (line[j] == 'G')
                             { // gasoline in this cell
                                 readMap[i, j] = CellType.Ground;
                             }
@@ -136,7 +131,7 @@ namespace IAV23.ElisaTodd
                             { // rock in this cell
                                 readMap[i, j] = CellType.Rock;
                             }
-                            else if (line[j] == 'a')
+                            else if (line[j] == 't')
                             { // tree in this cell
                                 readMap[i, j] = CellType.Tree;
                             }
