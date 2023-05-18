@@ -147,6 +147,10 @@ namespace IAV23.ElisaTodd
                             { // horizontal station in this cell
                                 readMap[i, j] = CellType.HorizontalStation;
                             }
+                            else if (line[j] == 'g')
+                            { // horizontal station in this cell
+                                readMap[i, j] = CellType.Gasoline;
+                            }
                             else
                             { // por defecto se pone suelo
                                 readMap[i, j] = CellType.Ground;
