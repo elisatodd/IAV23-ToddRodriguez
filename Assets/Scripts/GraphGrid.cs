@@ -21,7 +21,12 @@ namespace IAV23.ElisaTodd
         public GameObject endPrefab;
         public GameObject pillarPrefab;
 
+        // stations
+        public GameObject verticalStationPrefab;
+        public GameObject horizontalStationPrefab;
+
         // obstacles
+        public GameObject gasPrefab;
         public GameObject rockPrefab;
         public GameObject treePrefab;
         public GameObject housePrefab;
@@ -38,6 +43,21 @@ namespace IAV23.ElisaTodd
         public float maximumCost = Mathf.Infinity;
 
         GameObject[] vertexObjs;
+
+        public enum CellType
+        {
+            Ground,
+            Gasoline,
+            Rock,
+            Tree,
+            House,
+            VerticalStation,
+            HorizontalStation,
+            Start,
+            Exit,
+            Empty,
+            Wall
+        }
 
         private void Awake()
         {
@@ -87,8 +107,8 @@ namespace IAV23.ElisaTodd
                     neighbourVertex = new List<List<Vertex>>(numRows * numCols);
                     // references to the GameObjects
                     vertexObjs = new GameObject[numRows * numCols];
-                    // posiciones que tienen elementos
-                    mapVertices = new bool[numRows, numCols];
+                    // tipos de elementos en cada posición
+                    CellType[,] readMap = new CellType[numRows, numCols];
                     // each vertex has a different cost, depends on what the file determines
                     costsVertices = new float[numRows, numCols];
 
@@ -98,45 +118,44 @@ namespace IAV23.ElisaTodd
                         line = strmRdr.ReadLine();
                         for (j = 0; j < numCols; j++)
                         {
-                            bool isGround = true;
-
                             if (line[j] == 'e')
                             { // exit cell
                                 GameManager.instance.SetExit(j, i, cellSize);
+                                readMap[i, j] = CellType.Exit;
                             }
                             else if (line[j] == 's')
                             { // start cell
                                 GameManager.instance.SetStart(j, i, cellSize);
+                                readMap[i, j] = CellType.Ground;
                             }
                             else if (line[j] == 'g')
                             { // gasoline in this cell
+                                readMap[i, j] = CellType.Ground;
                             }
                             else if (line[j] == 'r')
                             { // rock in this cell
-
+                                readMap[i, j] = CellType.Rock;
                             }
-                            else if (line[j] == 't')
+                            else if (line[j] == 'a')
                             { // tree in this cell
-
+                                readMap[i, j] = CellType.Tree;
                             }
                             else if (line[j] == 'h')
                             { // house in this cell
-
+                                readMap[i, j] = CellType.House;
                             }
                             else if (line[j] == 'V')
                             { // vertical station in this cell
-
+                                readMap[i, j] = CellType.VerticalStation;
                             }
                             else if (line[j] == 'H')
                             { // horizontal station in this cell
-
+                                readMap[i, j] = CellType.HorizontalStation;
                             }
-                            else if (line[j] == 'T')
-                            {
-                                isGround = false;
+                            else
+                            { // por defecto se pone suelo
+                                readMap[i, j] = CellType.Ground;
                             }
-
-                            mapVertices[i, j] = isGround;
                         }
                     }
 
@@ -150,25 +169,51 @@ namespace IAV23.ElisaTodd
 
                             id = GridToId(j, i);
 
-                            if (mapVertices[i, j]) // normal slab
-                                vertexObjs[id] = Instantiate(vertexPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
-                            else // wall slab
-                                vertexObjs[id] = WallInstantiate(position, i, j);
+                            switch (readMap[i, j])
+                            {
+                                case CellType.Ground:
+                                    vertexObjs[id] = Instantiate(vertexPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    break;
+                                case CellType.Wall:
+                                    vertexObjs[id] = Instantiate(vertexPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    break;
+                                case CellType.Exit:
+                                    vertexObjs[id] = Instantiate(endPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    break;
+                                case CellType.Gasoline:
+                                    vertexObjs[id] = Instantiate(gasPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    break;
+                                case CellType.Rock:
+                                    vertexObjs[id] = Instantiate(rockPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    break;
+                                case CellType.Tree:
+                                    vertexObjs[id] = Instantiate(treePrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    break;
+                                case CellType.House:
+                                    vertexObjs[id] = Instantiate(housePrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    break;
+                                case CellType.VerticalStation:
+                                    vertexObjs[id] = Instantiate(verticalStationPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    break;
+                                case CellType.HorizontalStation:
+                                    vertexObjs[id] = Instantiate(horizontalStationPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    break;
+                                default:
+                                    break;
+                            }
 
-                            vertexObjs[id].name = vertexObjs[id].name.Replace("(Clone)", id.ToString());
-                            Vertex v = vertexObjs[id].AddComponent<Vertex>();
-                            v.id = id;
-                            vertices.Add(v);
-                            neighbourVertex.Add(new List<Vertex>());
+                            if (vertexObjs[id] != null)
+                            {
+                                vertexObjs[id].name = vertexObjs[id].name.Replace("(Clone)", id.ToString());
+                                Vertex v = vertexObjs[id].AddComponent<Vertex>();
+                                v.id = id;
+                                vertices.Add(v);
+                                neighbourVertex.Add(new List<Vertex>());
 
-                            vertexObjs[id].transform.localScale *= cellSize;
+                                vertexObjs[id].transform.localScale *= cellSize;
+                            }
                         }
                     }
-
-                    // Leemos vecinos
-                    for (i = 0; i < numRows; i++)
-                        for (j = 0; j < numCols; j++)
-                            SetNeighbours(j, i);
                 }
             }
             catch (Exception e)

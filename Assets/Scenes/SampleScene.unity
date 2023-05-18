@@ -162,6 +162,9 @@ MonoBehaviour:
   turnPrefab: {fileID: 100000, guid: af7d4428dcb5c9e48a10b20ae52848c3, type: 3}
   endPrefab: {fileID: 100000, guid: cc300cf5e27078e4a959ca84548dc14e, type: 3}
   pillarPrefab: {fileID: 100000, guid: 2de513a7b92cf014eadb891bcf950bc1, type: 3}
+  verticalStationPrefab: {fileID: 100000, guid: 4db9b652df0cc424eab4949f6c2beb3c, type: 3}
+  horizontalStationPrefab: {fileID: 100000, guid: 367a60e223f9f1b44909c5ae389f3cef, type: 3}
+  gasPrefab: {fileID: 100000, guid: b5eb3b69d8b5c554ba0bddcaea3b9832, type: 3}
   rockPrefab: {fileID: 100000, guid: 520ace5cf365b4342aaa666c1f8c1e3a, type: 3}
   treePrefab: {fileID: 100000, guid: 330809bb9ccffcf45bc96f2975be6780, type: 3}
   housePrefab: {fileID: 100000, guid: 1ba244956c8352a44aec26952aee9741, type: 3}
