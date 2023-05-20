@@ -12,6 +12,8 @@ namespace IAV23.ElisaTodd
     {
         public static GameManager instance = null;
 
+        [SerializeField] private GameObject player = null;
+
         // Textos UI
         Text fRText;
         Text heuristicText;
@@ -21,7 +23,7 @@ namespace IAV23.ElisaTodd
         string mazeSize = "10x10";
 
         private int frameRate = 60;
-        //TheseusGraph theseusGraph;
+        TrainGraph trainGraph;
 
         // Variables de timer de framerate
         int m_frameCounter = 0;
@@ -31,7 +33,6 @@ namespace IAV23.ElisaTodd
 
         private bool cameraPerspective = true;
 
-        GameObject player = null;
         GameObject exitSlab = null;
         GameObject startSlab = null;
 
@@ -124,9 +125,9 @@ namespace IAV23.ElisaTodd
             //    player = GameObject.Find("Avatar");
             //}
 
-            player = GameObject.Find("Avatar");
             startSlab = GameObject.Find("StartSlab");
             exitSlab = GameObject.Find("ExitSlab");
+            player = GameObject.Find("Avatar");
         }
 
         public GameObject GetPlayer()

@@ -10,31 +10,23 @@ namespace IAV23.ElisaTodd
     {
         const int MAX_TRIES = 1000;
 
-        public GameObject wallPrefab1;
-        public GameObject wallPrefab2;
-        public GameObject wallPrefab3;
-
-        public GameObject intersection3Prefab;
-        public GameObject intersection4Prefab;
-        public GameObject turnPrefab;
-
+        // casillas de comienzo y fin
         public GameObject endPrefab;
-        public GameObject pillarPrefab;
+        public GameObject startPrefab;
 
-        // stations
+        // estaciones de tren
         public GameObject verticalStationPrefab;
         public GameObject horizontalStationPrefab;
 
-        // obstacles
+        // obstáculos
         public GameObject gasPrefab;
         public GameObject rockPrefab;
         public GameObject treePrefab;
         public GameObject housePrefab;
 
-        public GameObject obstaclePrefab;
-
         public string mapsDir = "Maps"; // Directorio por defecto
         [SerializeField] string mapName = "Train1.map"; // Fichero por defecto
+
         public bool get8Vicinity = false;
         public float cellSize = 1f;
         [Range(0, Mathf.Infinity)]
@@ -44,6 +36,7 @@ namespace IAV23.ElisaTodd
 
         GameObject[] vertexObjs;
 
+        // De qué tipo puede ser cada casilla
         public enum CellType
         {
             Ground,
@@ -72,7 +65,7 @@ namespace IAV23.ElisaTodd
             return location;
         }
 
-
+        // Método para cargar y crear el mapa desde fichero
         private void LoadMap(string filename)
         {
             string path;
@@ -90,22 +83,24 @@ namespace IAV23.ElisaTodd
                     Vector3 position = Vector3.zero;
                     Vector3 scale = Vector3.zero;
 
-                    line = strmRdr.ReadLine(); // non-important line
-                    line = strmRdr.ReadLine(); // read height from file
+                    line = strmRdr.ReadLine();
+                    line = strmRdr.ReadLine();
                     numRows = int.Parse(line.Split(' ')[1]);
-                    line = strmRdr.ReadLine(); // read width from file
+                    line = strmRdr.ReadLine();
                     numCols = int.Parse(line.Split(' ')[1]);
-                    line = strmRdr.ReadLine(); // "map" line in file
+                    line = strmRdr.ReadLine();
 
-                    // list with all vertices in the map
+                    // vertices guarda cada Vértice del mapa
                     vertices = new List<Vertex>(numRows * numCols);
                     neighbourVertex = new List<List<Vertex>>(numRows * numCols);
-                    // references to the GameObjects
+                    // vertexObjs guarda el gameObject que hay en cada vértice
                     vertexObjs = new GameObject[numRows * numCols];
-                    // tipos de elementos en cada posición
+                    // para leer los tipos de elementos en cada posición
                     CellType[,] readMap = new CellType[numRows, numCols];
-                    // each vertex has a different cost, depends on what the file determines
+                    // cada vértice tiene coste distinto dependiendo del tipo
                     costsVertices = new float[numRows, numCols];
+
+                    mapVertices = new bool[numRows, numCols];
 
                     // Leer mapa
                     for (i = 0; i < numRows; i++)
@@ -113,48 +108,55 @@ namespace IAV23.ElisaTodd
                         line = strmRdr.ReadLine();
                         for (j = 0; j < numCols; j++)
                         {
+                            bool isGround = true;
+
                             if (line[j] == 'E')
-                            { // exit cell
+                            { // celda de salida
                                 GameManager.instance.SetExit(j, i, cellSize);
                                 readMap[i, j] = CellType.Exit;
                             }
                             else if (line[j] == 'S')
-                            { // start cell
+                            { // celda de entrada
                                 GameManager.instance.SetStart(j, i, cellSize);
                                 readMap[i, j] = CellType.Ground;
                             }
                             else if (line[j] == 'G')
-                            { // gasoline in this cell
+                            {
                                 readMap[i, j] = CellType.Ground;
                             }
                             else if (line[j] == 'r')
-                            { // rock in this cell
+                            {
+                                isGround = false;
                                 readMap[i, j] = CellType.Rock;
                             }
                             else if (line[j] == 't')
-                            { // tree in this cell
+                            {
+                                isGround = false;
                                 readMap[i, j] = CellType.Tree;
                             }
                             else if (line[j] == 'h')
-                            { // house in this cell
+                            {
+                                isGround = false;
                                 readMap[i, j] = CellType.House;
                             }
                             else if (line[j] == 'V')
-                            { // vertical station in this cell
+                            {
                                 readMap[i, j] = CellType.VerticalStation;
                             }
                             else if (line[j] == 'H')
-                            { // horizontal station in this cell
+                            {
                                 readMap[i, j] = CellType.HorizontalStation;
                             }
                             else if (line[j] == 'g')
-                            { // horizontal station in this cell
+                            {
                                 readMap[i, j] = CellType.Gasoline;
                             }
                             else
                             { // por defecto se pone suelo
                                 readMap[i, j] = CellType.Ground;
                             }
+
+                            mapVertices[i, j] = isGround;
                         }
                     }
 
@@ -168,6 +170,7 @@ namespace IAV23.ElisaTodd
 
                             id = GridToId(j, i);
 
+                            // se instancia un gameobject u otro en función de lo que se leyó
                             switch (readMap[i, j])
                             {
                                 case CellType.Ground:
@@ -213,6 +216,11 @@ namespace IAV23.ElisaTodd
                             }
                         }
                     }
+
+                    // Leemos vecinos
+                    for (i = 0; i < numRows; i++)
+                        for (j = 0; j < numCols; j++)
+                            SetNeighbours(j, i);
                 }
             }
             catch (Exception e)
@@ -347,70 +355,6 @@ namespace IAV23.ElisaTodd
             if (y > 0) costsVertices[x, y - 1] = defaultCost * costMultiplier;
             if (y < numCols - 1) costsVertices[x, y + 1] = defaultCost * costMultiplier;
 
-        }
-
-        private GameObject WallInstantiate(Vector3 position, int i, int j)
-        {
-            //Suelo base e independiente
-            GameObject floor = Instantiate(vertexPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
-            floor.transform.localScale *= cellSize;
-            floor.name = floor.name.Replace("(Clone)", GridToId(j, i).ToString());
-
-            //Derecha, Izquierda, Arriba, Abajo
-            bool[] dirs = new bool[4] { i < numRows - 1 && !mapVertices[i+1, j],
-                                        i > 0 && !mapVertices[i - 1, j],
-                                        j < numCols - 1 && !mapVertices[i, j + 1],
-                                        j > 0 && !mapVertices[i, j - 1] };
-
-            int connec = 0;
-            for (int index = 0; index < dirs.Length; index++)
-                if (dirs[index]) connec++;
-
-            //Interseccion en 4
-            if (dirs[0] && dirs[1] && dirs[2] && dirs[3])
-                return Instantiate(intersection4Prefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
-
-            //Interseccion en 3
-            if (dirs[0] && dirs[1] && dirs[2])
-                return Instantiate(intersection3Prefab, position, Quaternion.Euler(0, 90, 0), this.gameObject.transform) as GameObject;
-            if (dirs[0] && dirs[1] && dirs[3])
-                return Instantiate(intersection3Prefab, position, Quaternion.Euler(0, 270, 0), this.gameObject.transform) as GameObject;
-            if (dirs[0] && dirs[2] && dirs[3])
-                return Instantiate(intersection3Prefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
-            if (dirs[1] && dirs[2] && dirs[3])
-                return Instantiate(intersection3Prefab, position, Quaternion.Euler(0, 180, 0), this.gameObject.transform) as GameObject;
-
-            //Interseccion muro
-            if (dirs[0] && dirs[1])
-                return Instantiate(wallPrefab1, position, Quaternion.Euler(0, 90, 0), this.gameObject.transform) as GameObject;
-            if (dirs[2] && dirs[3])
-                return Instantiate(wallPrefab1, position, Quaternion.identity, this.gameObject.transform) as GameObject;
-
-            //Interseccion en giro
-            if (dirs[0] && dirs[2])
-                return Instantiate(turnPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
-            if (dirs[0] && dirs[3])
-                return Instantiate(turnPrefab, position, Quaternion.Euler(0, 270, 0), this.gameObject.transform) as GameObject;
-            if (dirs[1] && dirs[2])
-                return Instantiate(turnPrefab, position, Quaternion.Euler(0, 90, 0), this.gameObject.transform) as GameObject;
-            if (dirs[1] && dirs[3])
-                return Instantiate(turnPrefab, position, Quaternion.Euler(0, 180, 0), this.gameObject.transform) as GameObject;
-
-            //Muro libre
-            if (!dirs[0] && !dirs[1] && !dirs[2] && !dirs[3])
-                return Instantiate(pillarPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
-
-            //Laterales
-            if (dirs[0])
-                return Instantiate(endPrefab, position, Quaternion.Euler(0, 90, 0), this.gameObject.transform) as GameObject;
-            if (dirs[1])
-                return Instantiate(endPrefab, position, Quaternion.Euler(0, 270, 0), this.gameObject.transform) as GameObject;
-            if (dirs[2])
-                return Instantiate(endPrefab, position, Quaternion.Euler(0, 180, 0), this.gameObject.transform) as GameObject;
-            if (dirs[3])
-                return Instantiate(endPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
-
-            return Instantiate(obstaclePrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
         }
 
     }
