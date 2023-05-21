@@ -340,16 +340,32 @@ namespace IAV23.ElisaTodd
 
                 // Calculate the length of the current permutation
                 float length = 0;
+                List<Vertex> completePath = new List<Vertex>();
+
+                // Iterate through each vertex in the modified permutation
                 for (int i = 0; i < modifiedPermutation.Count - 1; i++)
                 {
                     Vertex start = modifiedPermutation[i];
                     Vertex end = modifiedPermutation[i + 1];
-                    List<Vertex> path = GetPathMyAstar(srcO, dstO, heuristic);
+
+                    // Get the path between the current start and end vertices
+                    List<Vertex> path = GetPathMyAstar(start.gameObject, end.gameObject, heuristic);
                     if (path == null)
                     {
                         length = float.PositiveInfinity; // Invalid path, set length to infinity
                         break;
                     }
+
+                    // Add the vertices to the complete path
+                    if (i < modifiedPermutation.Count - 2)
+                    {
+                        completePath.AddRange(path.GetRange(0, path.Count - 1));
+                    }
+                    else
+                    {
+                        completePath.AddRange(path);
+                    }
+
                     length += CalculatePathLength(path, heuristic);
                 }
 

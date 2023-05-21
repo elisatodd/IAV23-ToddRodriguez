@@ -101,7 +101,7 @@ namespace IAV23.ElisaTodd
                 case TesterGraphAlgorithm.ASTAR:
                     //if (firstHeuristic) path = graph.GetPathMyAstar(srcObj, dstObj, Euclidea);
                     //else path = graph.GetPathMyAstar(srcObj, dstObj, Manhattan);
-                    path = graph.SolveTSP(srcObj, dstObj, Manhattan);
+                    path = graph.SolveTSP(srcObj, dstObj, Euclidea);
                     break;
                 default: break;
             }
