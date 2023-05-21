@@ -3,7 +3,6 @@ namespace IAV23.ElisaTodd
     using UnityEngine;
     using System.Collections.Generic;
     using System;
-    using IAV23.ElisaTodd;
 
 
     // Posibles algoritmos para buscar caminos en grafos
@@ -100,8 +99,9 @@ namespace IAV23.ElisaTodd
             switch (algorithm)
             {
                 case TesterGraphAlgorithm.ASTAR:
-                    if (firstHeuristic) path = graph.GetPathAstar(srcObj, dstObj, Euclidea);
-                    else path = graph.GetPathAstar(srcObj, dstObj, Manhattan);
+                    //if (firstHeuristic) path = graph.GetPathMyAstar(srcObj, dstObj, Euclidea);
+                    //else path = graph.GetPathMyAstar(srcObj, dstObj, Manhattan);
+                    path = graph.SolveTSP(srcObj, dstObj, Manhattan);
                     break;
                 default: break;
             }

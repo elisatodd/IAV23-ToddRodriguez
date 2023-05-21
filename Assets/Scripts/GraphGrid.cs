@@ -5,6 +5,7 @@ namespace IAV23.ElisaTodd
     using System.Collections.Generic;
     using System.IO;
     using UnityEditor;
+    using System.Linq;
 
     public class GraphGrid : Graph
     {
@@ -170,6 +171,8 @@ namespace IAV23.ElisaTodd
 
                             id = GridToId(j, i);
 
+                            int cost = 1;
+                            bool essential = false;
                             // se instancia un gameobject u otro en función de lo que se leyó
                             switch (readMap[i, j])
                             {
@@ -184,6 +187,7 @@ namespace IAV23.ElisaTodd
                                     break;
                                 case CellType.Gasoline:
                                     vertexObjs[id] = Instantiate(gasPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    cost = 0;
                                     break;
                                 case CellType.Rock:
                                     vertexObjs[id] = Instantiate(rockPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
@@ -196,9 +200,11 @@ namespace IAV23.ElisaTodd
                                     break;
                                 case CellType.VerticalStation:
                                     vertexObjs[id] = Instantiate(verticalStationPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    essential = true;
                                     break;
                                 case CellType.HorizontalStation:
                                     vertexObjs[id] = Instantiate(horizontalStationPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
+                                    essential = true;
                                     break;
                                 default:
                                     break;
@@ -213,6 +219,9 @@ namespace IAV23.ElisaTodd
                                 neighbourVertex.Add(new List<Vertex>());
 
                                 vertexObjs[id].transform.localScale *= cellSize;
+
+                                vertices[id].cost = cost;
+                                vertices[id].essential = essential;
                             }
                         }
                     }

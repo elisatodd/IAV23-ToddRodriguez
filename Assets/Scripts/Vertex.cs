@@ -17,6 +17,10 @@ namespace IAV23.ElisaTodd
         /// </summary>
         public float cost;
 
+        /// <summary>
+        /// Es un vértice importante dentro del conjunto de vértices
+        /// </summary>
+        public bool essential = false;
 
         public int CompareTo(Vertex other)
         {
