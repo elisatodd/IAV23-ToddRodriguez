@@ -99,9 +99,9 @@ namespace IAV23.ElisaTodd
             switch (algorithm)
             {
                 case TesterGraphAlgorithm.ASTAR:
-                    //if (firstHeuristic) path = graph.GetPathMyAstar(srcObj, dstObj, Euclidea);
-                    //else path = graph.GetPathMyAstar(srcObj, dstObj, Manhattan);
-                    path = graph.SolveTSP(srcObj, dstObj, Euclidea);
+                    if (firstHeuristic) path = graph.SolveTSP(srcObj, dstObj, Euclidea);
+                    else path = graph.SolveTSP(srcObj, dstObj, Manhattan);
+                    path.Reverse(); // para el dibujado, revertir el camino
                     break;
                 default: break;
             }

@@ -180,7 +180,6 @@ namespace IAV23.ElisaTodd
             List<int> inversePath = new List<int>();
             while (current.vertexId != origin.id)
             {
-
                 inversePath.Add(current.vertexId);
                 //Podemos usar un auxiliar que solo almacene el vertex id ya que es lo único que necesita para hacer el find
                 current = current.prevNode;
@@ -309,62 +308,54 @@ namespace IAV23.ElisaTodd
             return BuildPath(origin.id, destiny.id, inversePath);
         }
 
-        /// <summary>
-        /// TSPSolver
-        /// </summary>
-        /// 
-
         public List<Vertex> SolveTSP(GameObject srcO, GameObject dstO, Heuristic heuristic)
         {
-            List<Vertex> goals = new List<Vertex>();
+            Vertex origin = GetNearestVertex(srcO.transform.position);
+            Vertex destiny = GetNearestVertex(dstO.transform.position);
+
+            List<Vertex> essentialVertices = new List<Vertex>();
             foreach (Vertex v in vertices)
             {
                 if (v.essential)
-                    goals.Add(v);
+                    essentialVertices.Add(v);
             }
 
-            // Generate all possible permutations of the goals
-            List<List<Vertex>> allPermutations = GeneratePermutations(goals);
+            // Generate all possible permutations of the essential vertices
+            List<List<Vertex>> essentialPermutations = GeneratePermutations(essentialVertices);
 
             // Initialize the shortest path and its length
             List<Vertex> shortestPath = null;
             float shortestLength = float.PositiveInfinity;
 
             // Iterate through each permutation
-            foreach (List<Vertex> permutation in allPermutations)
+            foreach (List<Vertex> permutation in essentialPermutations)
             {
-                // Create a modified permutation that includes the source and destination vertices
-                List<Vertex> modifiedPermutation = new List<Vertex>(permutation);
-                modifiedPermutation.Insert(0, GetNearestVertex(srcO.transform.position));
-                modifiedPermutation.Add(GetNearestVertex(dstO.transform.position));
+                // Include the source and destination vertices
+                permutation.Insert(0, origin);
+                permutation.Add(destiny);
 
                 // Calculate the length of the current permutation
                 float length = 0;
                 List<Vertex> completePath = new List<Vertex>();
 
                 // Iterate through each vertex in the modified permutation
-                for (int i = 0; i < modifiedPermutation.Count - 1; i++)
+                for (int i = 0; i < permutation.Count - 1; i++)
                 {
-                    Vertex start = modifiedPermutation[i];
-                    Vertex end = modifiedPermutation[i + 1];
+                    Vertex start = permutation[i];
+                    Vertex end = permutation[i + 1];
 
                     // Get the path between the current start and end vertices
-                    List<Vertex> path = GetPathMyAstar(start.gameObject, end.gameObject, heuristic);
+                    List<Vertex> path = GetPathAstar(start.gameObject, end.gameObject, heuristic);
+                    path.Reverse();
+
                     if (path == null)
                     {
                         length = float.PositiveInfinity; // Invalid path, set length to infinity
                         break;
                     }
 
-                    // Add the vertices to the complete path
-                    if (i < modifiedPermutation.Count - 2)
-                    {
-                        completePath.AddRange(path.GetRange(0, path.Count - 1));
-                    }
-                    else
-                    {
-                        completePath.AddRange(path);
-                    }
+                    // Add the vertices to the solution
+                    completePath.AddRange(path.GetRange(0, path.Count));
 
                     length += CalculatePathLength(path, heuristic);
                 }
@@ -373,10 +364,11 @@ namespace IAV23.ElisaTodd
                 if (length < shortestLength)
                 {
                     shortestLength = length;
-                    shortestPath = modifiedPermutation;
+                    shortestPath = completePath;
                 }
             }
 
+            shortestPath.Insert(0, origin);
             return shortestPath;
         }
         private float CalculatePathLength(List<Vertex> path, Heuristic heuristic)
