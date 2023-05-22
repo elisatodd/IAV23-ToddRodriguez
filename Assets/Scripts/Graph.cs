@@ -4,6 +4,7 @@ namespace IAV23.ElisaTodd
     using System.Collections.Generic;
     using System.Linq;
     using UnityEditor.Experimental.GraphView;
+    using UnityEditor.MemoryProfiler;
     using UnityEngine;
     using UnityEngine.UIElements;
     using static IAV23.ElisaTodd.Graph;
@@ -79,7 +80,6 @@ namespace IAV23.ElisaTodd
 
         public List<Vertex> GetPathAstar(GameObject srcO, GameObject dstO, Heuristic h = null)
         {
-            //GET NEAREST VERTEX DE GRAPHGRID SOBRE srcO y dstO 
             Vertex origin = GetNearestVertex(srcO.transform.position);
             Vertex destiny = GetNearestVertex(dstO.transform.position);
 
@@ -189,17 +189,13 @@ namespace IAV23.ElisaTodd
             return BuildPath(origin.id, destiny.id, inversePath);
         }
 
-        public List<Vertex> GetPathMyAstar(GameObject srcO, GameObject dstO, Heuristic heuristic = null)
+        public List<Vertex> GetPathMyAstar(GameObject srcO, GameObject dstO, Heuristic h = null)
         {
+            float currentGas = 7;
+            bool ranOut = false;
+
             Vertex origin = GetNearestVertex(srcO.transform.position);
             Vertex destiny = GetNearestVertex(dstO.transform.position);
-
-            // para comprobar que se han recorrido todas las estaciones
-            List<Vertex> requiredVertices = new List<Vertex>();
-            foreach (var vertex in vertices)
-            {
-                if (vertex.essential) { requiredVertices.Add(vertex); }
-            }
 
             Node startRecord = new Node();
             startRecord.vertexId = origin.id;
@@ -211,26 +207,22 @@ namespace IAV23.ElisaTodd
             PriorityQueue<Node> closed = new PriorityQueue<Node>();
             Node current = startRecord;
             Vertex[] connections;
-
-
             while (!open.Empty() && open.Top() != null)
             {
                 current = open.Top();
                 open.Pop();
-
-                // cuando se llegue al destino final, se detiene la búsqueda
                 if (current.vertexId == destiny.id)
                 {
                     break;
                 }
 
-                // Tomamos los adyacentes al vértice actual
+                //Tomamos los adyacentes al vértice actual
                 connections = GetNeighbours(vertices[current.vertexId]);
 
-                // Recorremos para cada adyecente
+                //Recorremos para cada adyecente
                 foreach (Vertex connection in connections)
                 {
-                    // Hacemos una estimación sobre el coste de llegar desde aquí al final
+                    //Hacemos una estimación sobre el coste de llegar desde aquí al final
                     Node endNode = new Node();
                     endNode.vertexId = connection.id;
 
@@ -238,76 +230,96 @@ namespace IAV23.ElisaTodd
 
                     Node endNodeRecord;
                     float endNodeHeuristic;
-                    // Si el nodo está cerrado, o nos lo saltamos o lo quitamos de la lista
+                    //Si el nodo está cerrado, o nos lo saltamos o lo quitamos de la lista
                     if (closed.Contains(endNode))
                     {
                         endNodeRecord = closed.Find(endNode);
 
-                        // Si no encontramos una ruta más corta para este nodo
+                        //Si no encontramos una ruta más corta para este nodo
                         if (endNodeRecord.costSoFar <= endNodeCost) { continue; }
 
-                        // Por el contrario, lo quitamos de la lista
+                        //Por el contrario, lo quitamos de la lista
                         closed.Remove(endNodeRecord);
 
-                        // Podemos usar los antiguos valores para obtener la heurística de este nodo
-                        endNodeHeuristic = endNodeRecord.estimatedTotalCost - endNodeRecord.costSoFar;
+                        //Podemos usar los antiguos valores para obtener la heurística de este nodo
+                        endNodeHeuristic = endNodeRecord.estimatedTotalCost - endNodeRecord.costSoFar; //h = f - g ¿es necesario?¿A dónde va endNodeHeuristic?
+
                     }
                     else if (open.Contains(endNode))
                     {
                         endNodeRecord = closed.Find(endNode);
 
-                        // Si no mejoramos la ruta, seguimos con el bucle
+                        //Si no mejoramos la ruta, seguimos con el bucle
                         if (endNodeRecord.costSoFar <= endNodeCost)
                         { continue; }
 
                         endNodeHeuristic = endNodeRecord.estimatedTotalCost - endNodeRecord.costSoFar;
+
                     }
-                    else // Aquí quedan los nodos no visitados aún
+                    else //Aquí quedan los nodos no visitados aún
                     {
                         endNodeRecord = new Node();
                         endNodeRecord.vertexId = endNode.vertexId;
 
-                        // Necesitamos la función heurística para poder estimar el coste al hasta el final
-                        endNodeHeuristic = heuristic.Invoke(vertices[endNode.vertexId], destiny);
+                        //Necesitamos la función heurística para poder estimar el coste al hasta el final
+                        endNodeHeuristic = h.Invoke(vertices[endNode.vertexId], destiny);
+
                     }
 
-                    // Aquí actualizamos los costes del NodeRecord
+                    //Aquí actualizamos los costes del NodeRecord
                     endNodeRecord = new Node();
                     endNodeRecord.vertexId = endNode.vertexId;
                     endNodeRecord.costSoFar = endNodeCost;
                     endNodeRecord.prevNode = current;
                     endNodeRecord.estimatedTotalCost = endNodeCost + endNodeHeuristic;
 
-                    // Se añade a la lista 
+                    //Se añade a la lista 
                     if (!open.Contains(endNodeRecord))
+                    {
                         open.Push(endNodeRecord);
+                    }
                 }
+
+                //Al visitar las conexiones de este nodo, lo podemos
+                //añadir a la lista de closed
                 closed.Push(current);
+
             }
 
             Vertex currentVertex = vertices[current.vertexId];
-            // Caso en el que no hemos encontrado la salida
+            //Caso en el que no hemos encontrado la salida
             if (currentVertex != destiny)
             {
-                Debug.Log("No es posible llegar a " + dstO.name + " desde " + srcO.name);
+                Debug.Log("No se puede alcanzar la salida " + dstO.name + " desde " + srcO.name);
                 return null;
             }
 
-            // Recorremos la lista de manera inversa, viajando por los previos
+            //Recorremos la lista de manera inversa, viajando por los previos
             Node aux = new Node();
             List<int> inversePath = new List<int>();
             while (current.vertexId != origin.id)
             {
-
                 inversePath.Add(current.vertexId);
-                // Podemos usar un auxiliar que solo almacene el vertex id ya que es lo único que necesita para hacer el find
+                //Podemos usar un auxiliar que solo almacene el vertex id ya que es lo único que necesita para hacer el find
                 current = current.prevNode;
+
+                currentGas -= vertices[current.vertexId].cost;
+                currentGas += vertices[current.vertexId].gas;
+
+                if (currentGas < 1) { ranOut = true; break; }
             }
 
-            // Construimos el camino añadiendo los nodos a la lista, empezando por el final
+            // Caso de gasolina insuficiente
+            if (ranOut)
+            {
+                Debug.Log("La gasolina no es suficiente para completar este nivel");
+                return null;
+            }
+            
+            Debug.Log("Finaliza con " + currentGas + " de gasolina.");
+            //Construimos el camino añadiendo los nodos a la lista, empezando por el final
             return BuildPath(origin.id, destiny.id, inversePath);
         }
-
         public List<Vertex> SolveTSP(GameObject srcO, GameObject dstO, Heuristic heuristic)
         {
             Vertex origin = GetNearestVertex(srcO.transform.position);
@@ -345,7 +357,7 @@ namespace IAV23.ElisaTodd
                     Vertex end = permutation[i + 1];
 
                     // Get the path between the current start and end vertices
-                    List<Vertex> path = GetPathAstar(start.gameObject, end.gameObject, heuristic);
+                    List<Vertex> path = GetPathMyAstar(start.gameObject, end.gameObject, heuristic);
                     path.Reverse();
 
                     if (path == null)
@@ -371,6 +383,67 @@ namespace IAV23.ElisaTodd
             shortestPath.Insert(0, origin);
             return shortestPath;
         }
+        public List<Vertex> SolveTSPOptimized(GameObject srcO, GameObject dstO, Heuristic heuristic)
+        {
+            Vertex origin = GetNearestVertex(srcO.transform.position);
+            Vertex destiny = GetNearestVertex(dstO.transform.position);
+
+            List<Vertex> essentialVertices = new List<Vertex>();
+            List<Vertex> additionalVertices = new List<Vertex>();
+            foreach (Vertex v in vertices)
+            {
+                if (v.essential)
+                    essentialVertices.Add(v);
+                else if (v != origin && v != destiny)
+                    additionalVertices.Add(v);
+            }
+
+            // Initialize the shortest path and its length
+            List<Vertex> bestPath = null;
+            float bestLength = float.PositiveInfinity;
+
+            // Iterate through each permutation
+            foreach (Vertex initialVertex in essentialVertices)
+            {
+                List<Vertex> currentRoute = new List<Vertex>() { origin, initialVertex, destiny };
+                float currentLength = CalculatePathLength(currentRoute, heuristic);
+
+                foreach (Vertex vertex in essentialVertices)
+                {
+                    if (!currentRoute.Contains(vertex))
+                    {
+                        float bestInsertionLength = float.PositiveInfinity;
+                        int bestPosition = -1;
+
+                        for (int i = 1; i < currentRoute.Count; i++)
+                        {
+                            List<Vertex> tempRoute = new List<Vertex>(currentRoute);
+                            tempRoute.Insert(i, vertex);
+
+                            float insertionLength = CalculatePathLength(tempRoute, heuristic);
+
+                            if (insertionLength < bestInsertionLength)
+                            {
+                                bestInsertionLength = insertionLength;
+                                bestPosition = i;
+                            }
+                        }
+
+                        if (bestPosition != -1)
+                            currentRoute.Insert(bestPosition, vertex);
+                    }
+                }
+
+                if (currentLength < bestLength)
+                {
+                    bestLength = currentLength;
+                    bestPath = currentRoute;
+                }
+            }
+            bestPath.Insert(0, origin);
+            return bestPath;
+        }
+
         private float CalculatePathLength(List<Vertex> path, Heuristic heuristic)
         {
             float length = 0;

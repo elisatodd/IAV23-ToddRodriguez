@@ -172,6 +172,7 @@ namespace IAV23.ElisaTodd
                             id = GridToId(j, i);
 
                             int cost = 1;
+                            int gas = 0;
                             bool essential = false;
                             // se instancia un gameobject u otro en función de lo que se leyó
                             switch (readMap[i, j])
@@ -188,6 +189,7 @@ namespace IAV23.ElisaTodd
                                 case CellType.Gasoline:
                                     vertexObjs[id] = Instantiate(gasPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
                                     cost = 0;
+                                    gas = 3;
                                     break;
                                 case CellType.Rock:
                                     vertexObjs[id] = Instantiate(rockPrefab, position, Quaternion.identity, this.gameObject.transform) as GameObject;
@@ -221,6 +223,7 @@ namespace IAV23.ElisaTodd
                                 vertexObjs[id].transform.localScale *= cellSize;
 
                                 vertices[id].cost = cost;
+                                vertices[id].gas = gas;
                                 vertices[id].essential = essential;
                             }
                         }

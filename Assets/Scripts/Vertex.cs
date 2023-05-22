@@ -22,6 +22,11 @@ namespace IAV23.ElisaTodd
         /// </summary>
         public bool essential = false;
 
+        /// <summary>
+        /// Gasolina que proporciona este vértice
+        /// </summary>
+        public int gas = 0;
+
         public int CompareTo(Vertex other)
         {
             float result = this.cost - other.cost;
