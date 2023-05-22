@@ -191,7 +191,7 @@ namespace IAV23.ElisaTodd
 
         public List<Vertex> GetPathMyAstar(GameObject srcO, GameObject dstO, Heuristic h = null)
         {
-            float currentGas = 7;
+            float currentGas = GameManager.instance.GasLevel;
             bool ranOut = false;
 
             Vertex origin = GetNearestVertex(srcO.transform.position);

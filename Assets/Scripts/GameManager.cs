@@ -14,16 +14,25 @@ namespace IAV23.ElisaTodd
 
         [SerializeField] private GameObject player = null;
 
-        // Textos UI
-        Text fRText;
-        Text heuristicText;
-        Text invencibleText;
-        Text label;
-        Text label2;
-        string mazeSize = "10x10";
+        [SerializeField] private int gasInitialLevel;
+        [SerializeField] private int gasLevel;
+        public int GasInitialLevel
+        {
+            get { return gasInitialLevel; }
+        }
+        public int GasLevel
+        {
+            get { return gasLevel; }
+            set {  gasLevel = value; UpdateGasUI(); }
+        }
+
+        [Header("UI")]
+        [SerializeField] private GameObject gasUI;
+        [SerializeField] private VerticalLayoutGroup gasLayout;
+
+        private List<HideMask> hideMasks;
 
         private int frameRate = 60;
-        TrainGraph trainGraph;
 
         // Variables de timer de framerate
         int m_frameCounter = 0;
@@ -31,25 +40,11 @@ namespace IAV23.ElisaTodd
         float m_lastFramerate = 0.0f;
         float m_refreshTime = 0.5f;
 
-        private bool cameraPerspective = true;
 
         GameObject exitSlab = null;
         GameObject startSlab = null;
 
         GameObject exit = null;
-
-        int numMinos = 1;
-
-        private bool invencible = true;
-        public bool Invencible
-        {
-            get { return invencible; }
-        }
-        public void CambiarInvencible()
-        {
-            invencible = !invencible;
-            invencibleText.text = invencible.ToString();
-        }
 
         private void Awake()
         {
@@ -70,15 +65,36 @@ namespace IAV23.ElisaTodd
             Application.targetFrameRate = frameRate;
 
             FindGO();
+
+            BuildGasUI(); 
+
+            GasLevel = GasInitialLevel;
         }
 
-        private void OnLevelWasLoaded(int level)
+        private void BuildGasUI()
         {
-            invencible = true;
-            FindGO();
+            hideMasks = new List<HideMask>();
+            for (int i = 0; i < gasInitialLevel; ++i)
+            {
+                hideMasks.Add(Instantiate(gasUI, gasLayout.transform).GetComponent<HideMask>());
+            }
         }
 
-        // Update is called once per frame
+        private void UpdateGasUI()
+        {
+            for (int i = 0; i < hideMasks.Count; ++i)
+            {
+                if (i < gasLevel)
+                {
+                    hideMasks[i]?.Show();
+                }
+                else
+                {
+                    hideMasks[i]?.Hide();
+                }
+            }
+        }
+
         void Update()
         {
             // Timer para mostrar el frameRate a intervalos
@@ -94,40 +110,18 @@ namespace IAV23.ElisaTodd
                 m_timeCounter = 0.0f;
             }
 
-            // Texto con el framerate y 2 decimales
-            if (fRText != null)
-                fRText.text = (((int)(m_lastFramerate * 100 + .5) / 100.0)).ToString();
-
 
             //Input
             if (Input.GetKeyDown(KeyCode.R))
                 RestartScene();
             if (Input.GetKeyDown(KeyCode.F))
                 ChangeFrameRate();
-            //if (Input.GetKeyDown(KeyCode.C))
-            //    heuristicText.text = theseusGraph.ChangeHeuristic();
         }
 
         private void FindGO()
         {
-            //if (SceneManager.GetActiveScene().name == "Menu") // Nombre de escena que habría que llevar a una constante
-            //{
-            //    label = GameObject.FindGameObjectWithTag("DDLabel").GetComponent<Text>();
-            //    label2 = GameObject.FindGameObjectWithTag("MinoLabel").GetComponent<Text>();
-            //}
-            //else if (SceneManager.GetActiveScene().name == "Labyrinth") // Nombre de escena que habría que llevar a una constante
-            //{
-            //    fRText = GameObject.FindGameObjectWithTag("Framerate").GetComponent<Text>();
-            //    heuristicText = GameObject.FindGameObjectWithTag("Heuristic").GetComponent<Text>();
-            //    //theseusGraph = GameObject.FindGameObjectWithTag("TesterGraph").GetComponent<TheseusGraph>();
-            //    exitSlab = GameObject.FindGameObjectWithTag("Exit");
-            //    startSlab = GameObject.FindGameObjectWithTag("Start");
-            //    player = GameObject.Find("Avatar");
-            //}
-
             startSlab = GameObject.Find("StartSlab");
             exitSlab = GameObject.Find("ExitSlab");
-            player = GameObject.Find("Avatar");
         }
 
         public GameObject GetPlayer()
@@ -139,17 +133,6 @@ namespace IAV23.ElisaTodd
         public void RestartScene()
         {
             SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
-
-
-        public void setNumMinos()
-        {
-            numMinos = int.Parse(label2.text);
-        }
-
-        public int getNumMinos()
-        {
-            return numMinos;
         }
 
         public void goToScene(string scene)
@@ -187,15 +170,6 @@ namespace IAV23.ElisaTodd
                 frameRate = 30;
                 Application.targetFrameRate = 30;
             }
-        }
-
-        public void ChangeSize()
-        {
-            mazeSize = label.text;
-        }
-        public string getSize()
-        {
-            return mazeSize;
         }
     }
 }
