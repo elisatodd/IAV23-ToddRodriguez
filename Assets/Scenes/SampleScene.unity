@@ -315,23 +315,23 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4291829331042313263, guid: c391d0bafd410864ca5d0cc1bd083ed3, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 0.932702
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4291829331042313263, guid: c391d0bafd410864ca5d0cc1bd083ed3, type: 3}
       propertyPath: m_LocalRotation.x
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4291829331042313263, guid: c391d0bafd410864ca5d0cc1bd083ed3, type: 3}
       propertyPath: m_LocalRotation.y
-      value: -0.36064804
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4291829331042313263, guid: c391d0bafd410864ca5d0cc1bd083ed3, type: 3}
       propertyPath: m_LocalRotation.z
-      value: -0
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4291829331042313263, guid: c391d0bafd410864ca5d0cc1bd083ed3, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: -42.28
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5098458040674580379, guid: c391d0bafd410864ca5d0cc1bd083ed3, type: 3}
       propertyPath: m_RootOrder
@@ -426,7 +426,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   graph: {fileID: 507983088}
-  train: {fileID: 1325738212}
+  start: {fileID: 3428927904613860438}
+  moveTrain: {fileID: 1325738216}
   algorithm: 0
   vertexTag: Vertex
   obstacleTag: Obstacle
@@ -467,7 +468,7 @@ LineRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ec0c63fe7e35cd041b3b0eef66660c65, type: 2}
+  - {fileID: 2100000, guid: 2f560716ea4a9e64a9fd7f0de4e660c7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -974,6 +975,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5587432493576105249, guid: c391d0bafd410864ca5d0cc1bd083ed3, type: 3}
   m_PrefabInstance: {fileID: 549876883}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1325738216 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 627468575727984850, guid: c391d0bafd410864ca5d0cc1bd083ed3, type: 3}
+  m_PrefabInstance: {fileID: 549876883}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1325738212}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61b1156e0e9ab26478afea94d324d385, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1329882233
 GameObject:
   m_ObjectHideFlags: 0

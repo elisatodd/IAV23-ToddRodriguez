@@ -3,6 +3,7 @@ namespace IAV23.ElisaTodd
     using UnityEngine;
     using System.Collections.Generic;
     using System;
+    using System.Collections;
 
 
     // Posibles algoritmos para buscar caminos en grafos
@@ -17,7 +18,8 @@ namespace IAV23.ElisaTodd
         // referencia al mapa
         [SerializeField] private GraphGrid graph;
         // referencia al jugador
-        [SerializeField] private GameObject train;
+        [SerializeField] private GameObject start;
+        [SerializeField] private MoveTrain moveTrain;
 
         // algoritmo que se utiliza para resolver
         [SerializeField] private TesterGraphAlgorithm algorithm;
@@ -45,11 +47,13 @@ namespace IAV23.ElisaTodd
         protected LineRenderer hilo;
         protected float hiloOffset = 0.2f;
 
+        private bool simulationActive = false;
+
         // Despertar inicializando esto
         public virtual void Awake()
         {
             mainCamera = Camera.main;
-            srcObj = train;
+            srcObj = start;
             dstObj = GameObject.Find("ExitSlab");
             path = new List<Vertex>();
             hilo = GetComponent<LineRenderer>();
@@ -70,6 +74,20 @@ namespace IAV23.ElisaTodd
                     UpdatePath(true);
                 }
             }
+            else if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                // realizar simulación
+                if (!reUpdatePath) // si no se hubiera mostrado el camino antes, hay que activarlo
+                {
+                    UpdatePath(true);
+                }
+
+                if (!simulationActive)
+                {
+                    simulationActive = true; 
+                    StartCoroutine(moveTrain.Move(path));
+                }
+            }
             else
             {
                 if (reUpdatePath)
@@ -79,10 +97,13 @@ namespace IAV23.ElisaTodd
             // Solo lo calculamos al hacer click derecho con el ratón
             if (reUpdatePath)
             {
-                calculatePath();
+                CalculatePath();
             }
 
-            DibujaHilo();
+            if (!simulationActive)
+            {
+                DibujaHilo();   
+            }
         }
 
         public void ChangeMaterial(Material m)
@@ -90,7 +111,7 @@ namespace IAV23.ElisaTodd
             hilo.material = m;
         }
 
-        public void calculatePath()
+        public void CalculatePath()
         {
             //Source jugador y destino el nodo final
             if (srcObj == null) srcObj = GameManager.instance.GetPlayer();
@@ -101,7 +122,6 @@ namespace IAV23.ElisaTodd
                 case TesterGraphAlgorithm.ASTAR:
                     //path = graph.GetPathMyAstar(srcObj, dstObj, Manhattan);
                     path = graph.SolveTSP(srcObj, dstObj, Manhattan);
-                    path.Reverse(); // para el dibujado, revertir el camino
                     break;
                 default: break;
             }
@@ -208,13 +228,15 @@ namespace IAV23.ElisaTodd
         // Dibuja el hilo de Ariadna
         public virtual void DibujaHilo()
         {
-            hilo.positionCount = path.Count + 1;
+            List<Vertex> reversedPath = GetReversedPath(path);
+
+            hilo.positionCount = reversedPath.Count + 1;
             hilo.SetPosition(0, new Vector3(srcObj.transform.position.x, srcObj.transform.position.y + hiloOffset, srcObj.transform.position.z));
 
-            for (int i = path.Count - 1; i >= 0; i--)
+            for (int i = reversedPath.Count - 1; i >= 0; i--)
             {
-                Vector3 vertexPos = new Vector3(path[i].transform.position.x, path[i].transform.position.y + hiloOffset, path[i].transform.position.z);
-                hilo.SetPosition(path.Count - i, vertexPos);
+                Vector3 vertexPos = new Vector3(reversedPath[i].transform.position.x, reversedPath[i].transform.position.y + hiloOffset, reversedPath[i].transform.position.z);
+                hilo.SetPosition(reversedPath.Count - i, vertexPos);
             }
         }
 
@@ -238,6 +260,13 @@ namespace IAV23.ElisaTodd
         public virtual void setDestiny(GameObject gO)
         {
             dstObj = gO;
+        }
+
+        private List<Vertex> GetReversedPath(List<Vertex> originalPath)
+        {
+            List<Vertex> reversedPath = new List<Vertex>(originalPath);
+            reversedPath.Reverse();
+            return reversedPath;
         }
 
     }
