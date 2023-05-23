@@ -2,8 +2,10 @@ namespace IAV23.ElisaTodd
 {
     using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
     using TMPro;
     using UnityEngine;
+    using UnityEngine.UI;
 
     public class MoveTrain : MonoBehaviour
     {
@@ -18,6 +20,12 @@ namespace IAV23.ElisaTodd
             {
                 Vector3 vertexPos = vertex.transform.position;
                 yield return StartCoroutine(MoveToPosition(vertexPos));
+
+                GameManager.instance.GasLevel -= (int)vertex.cost;
+                GameManager.instance.GasLevel += vertex.gas;
+
+                GameManager.instance.UpdateGasUI();
+
                 yield return new WaitForSeconds(delayTime);
             }
         }

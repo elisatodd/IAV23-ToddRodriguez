@@ -30,7 +30,7 @@ namespace IAV23.ElisaTodd
         [SerializeField] private GameObject gasUI;
         [SerializeField] private VerticalLayoutGroup gasLayout;
 
-        private List<HideMask> hideMasks;
+        public List<HideMask> hideMasks;
 
         private int frameRate = 60;
 
@@ -80,17 +80,17 @@ namespace IAV23.ElisaTodd
             }
         }
 
-        private void UpdateGasUI()
+        public void UpdateGasUI()
         {
             for (int i = 0; i < hideMasks.Count; ++i)
             {
                 if (i < gasLevel)
                 {
-                    hideMasks[i]?.Show();
+                    hideMasks[i]?.Hide();
                 }
                 else
                 {
-                    hideMasks[i]?.Hide();
+                    hideMasks[i]?.Show();
                 }
             }
         }

@@ -7,12 +7,7 @@ namespace IAV23.ElisaTodd
     public class HideMask : MonoBehaviour
     {
         [SerializeField] private RectTransform rectTransform;
-        private Vector2 initialSize;
-
-        private void Start()
-        {
-            initialSize = rectTransform.sizeDelta;
-        }
+        [SerializeField] Vector2 initialSize;
 
         public void Hide()
         {

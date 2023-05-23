@@ -189,9 +189,9 @@ namespace IAV23.ElisaTodd
             return BuildPath(origin.id, destiny.id, inversePath);
         }
 
-        public List<Vertex> GetPathMyAstar(GameObject srcO, GameObject dstO, Heuristic h = null)
+        public List<Vertex> GetPathMyAstar(GameObject srcO, GameObject dstO, ref float gas, Heuristic h = null)
         {
-            float currentGas = GameManager.instance.GasLevel;
+            float currentGas = gas;
             bool ranOut = false;
 
             Vertex origin = GetNearestVertex(srcO.transform.position);
@@ -357,7 +357,8 @@ namespace IAV23.ElisaTodd
                     Vertex end = permutation[i + 1];
 
                     // Get the path between the current start and end vertices
-                    List<Vertex> path = GetPathMyAstar(start.gameObject, end.gameObject, heuristic);
+                    float gasoline = GameManager.instance.GasLevel;
+                    List<Vertex> path = GetPathMyAstar(start.gameObject, end.gameObject, ref gasoline, heuristic);
                     path.Reverse();
 
                     if (path == null)
@@ -462,7 +463,6 @@ namespace IAV23.ElisaTodd
             GeneratePermutationsHelper(goals, 0, permutations);
             return permutations;
         }
-
         private void GeneratePermutationsHelper(List<Vertex> goals, int start, List<List<Vertex>> permutations)
         {
             if (start == goals.Count - 1)
@@ -479,15 +479,12 @@ namespace IAV23.ElisaTodd
                 }
             }
         }
-
         private void Swap(List<Vertex> goals, int i, int j)
         {
             Vertex temp = goals[i];
             goals[i] = goals[j];
             goals[j] = temp;
         }
-
-
         public List<Vertex> Smooth(List<Vertex> inputPath)
         {
             // IMPLEMENTAR SUAVIZADO DE CAMINOS, MODIFICADO
@@ -528,7 +525,6 @@ namespace IAV23.ElisaTodd
 
             return outputPath;
         }
-
         // Reconstruir el camino, dando la vuelta a la lista de nodos 'padres' /previos que hemos ido anotando
         private List<Vertex> BuildPath(int srcId, int dstId, List<int> prevList)
         {
