@@ -350,6 +350,8 @@ namespace IAV23.ElisaTodd
                 float length = 0;
                 List<Vertex> completePath = new List<Vertex>();
 
+                List<bool> visitedStation = new List<bool>();
+
                 // Iterate through each vertex in the modified permutation
                 for (int i = 0; i < permutation.Count - 1; i++)
                 {
@@ -364,8 +366,11 @@ namespace IAV23.ElisaTodd
                     if (path == null)
                     {
                         length = float.PositiveInfinity; // Invalid path, set length to infinity
+                        visitedStation[i] = false;
                         break;
                     }
+
+                    visitedStation[i] = true;
 
                     // Add the vertices to the solution
                     completePath.AddRange(path.GetRange(0, path.Count));
@@ -374,7 +379,8 @@ namespace IAV23.ElisaTodd
                 }
 
                 // Check if the current permutation is the shortest so far
-                if (length < shortestLength)
+                bool visitedAll = visitedStation.All(b => b == true);
+                if (visitedAll && length < shortestLength)
                 {
                     shortestLength = length;
                     shortestPath = completePath;
