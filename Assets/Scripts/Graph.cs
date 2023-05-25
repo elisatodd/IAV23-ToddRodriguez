@@ -14,12 +14,11 @@ namespace IAV23.ElisaTodd
         protected float[,] costsVertices;
         protected int numCols, numRows;
 
-        // this is for informed search like A*
         public delegate float Heuristic(Vertex a, Vertex b);
 
-        // Used for getting path in frames
         public List<Vertex> path;
 
+        // Eventos para avisar de mapa no válido
         public delegate void InvalidMapDelegate(bool unreachable);
         public static event InvalidMapDelegate InvalidMap;
 
@@ -75,6 +74,13 @@ namespace IAV23.ElisaTodd
             return costsV;
         }
 
+        /// <summary>
+        /// Método A* original que busca el camino óptimo entre 2 puntos
+        /// </summary>
+        /// <param name="srcO"> Objeto del que parte el camino </param>
+        /// <param name="dstO"> Objeto al que llega el camino </param>
+        /// <param name="h"> Heurística que utiliza para valorar la distancia entre 2 puntos </param>
+        /// <returns> Una lista con los vértices que componen el camino </returns>
         public List<Vertex> GetPathAstar(GameObject srcO, GameObject dstO, Heuristic h = null)
         {
             Vertex origin = GetNearestVertex(srcO.transform.position);
@@ -186,6 +192,16 @@ namespace IAV23.ElisaTodd
             return BuildPath(origin.id, destiny.id, inversePath);
         }
 
+        /// <summary>
+        /// Método A* modificado que busca el camino óptimo entre 2 puntos, usando un combustible 
+        /// que se va agotando o recargando a medida que recorre el camino
+        /// 
+        /// </summary>
+        /// <param name="srcO"> Objeto del que parte el camino </param>
+        /// <param name="dstO"> Objeto al que llega el camino </param>
+        /// <param name="gas"> Combustible que tiene para realizar el recorrido </param>
+        /// <param name="h"> Heurística que utiliza para valorar la distancia entre 2 puntos </param>
+        /// <returns> Una lista con los vértices que componen el camino </returns>
         public List<Vertex> GetPathMyAstar(GameObject srcO, GameObject dstO, ref float gas, Heuristic h = null)
         {
             if (gas <= 0)
@@ -219,13 +235,13 @@ namespace IAV23.ElisaTodd
                     break;
                 }
 
-                //Tomamos los adyacentes al vértice actual
+                // Tomamos los adyacentes al vértice actual
                 connections = GetNeighbours(vertices[current.vertexId]);
 
-                //Recorremos para cada adyecente
+                // Recorremos para cada adyecente
                 foreach (Vertex connection in connections)
                 {
-                    //Hacemos una estimación sobre el coste de llegar desde aquí al final
+                    // Hacemos una estimación sobre el coste de llegar desde aquí al final
                     Node endNode = new Node();
                     endNode.vertexId = connection.id;
 
@@ -233,18 +249,18 @@ namespace IAV23.ElisaTodd
 
                     Node endNodeRecord;
                     float endNodeHeuristic;
-                    //Si el nodo está cerrado, o nos lo saltamos o lo quitamos de la lista
+                    // Si el nodo está cerrado, o nos lo saltamos o lo quitamos de la lista
                     if (closed.Contains(endNode))
                     {
                         endNodeRecord = closed.Find(endNode);
 
-                        //Si no encontramos una ruta más corta para este nodo
+                        // Si no encontramos una ruta más corta para este nodo
                         if (endNodeRecord.costSoFar <= endNodeCost) { continue; }
 
-                        //Por el contrario, lo quitamos de la lista
+                        // Por el contrario, lo quitamos de la lista
                         closed.Remove(endNodeRecord);
 
-                        //Podemos usar los antiguos valores para obtener la heurística de este nodo
+                        // Podemos usar los antiguos valores para obtener la heurística de este nodo
                         endNodeHeuristic = endNodeRecord.estimatedTotalCost - endNodeRecord.costSoFar; //h = f - g ¿es necesario?¿A dónde va endNodeHeuristic?
 
                     }
@@ -252,61 +268,60 @@ namespace IAV23.ElisaTodd
                     {
                         endNodeRecord = closed.Find(endNode);
 
-                        //Si no mejoramos la ruta, seguimos con el bucle
+                        // Si no mejoramos la ruta, seguimos con el bucle
                         if (endNodeRecord.costSoFar <= endNodeCost)
                         { continue; }
 
                         endNodeHeuristic = endNodeRecord.estimatedTotalCost - endNodeRecord.costSoFar;
 
                     }
-                    else //Aquí quedan los nodos no visitados aún
+                    else // Aquí quedan los nodos no visitados aún
                     {
                         endNodeRecord = new Node();
                         endNodeRecord.vertexId = endNode.vertexId;
 
-                        //Necesitamos la función heurística para poder estimar el coste al hasta el final
+                        // Necesitamos la función heurística para poder estimar el coste al hasta el final
                         endNodeHeuristic = h.Invoke(vertices[endNode.vertexId], destiny);
-
                     }
 
-                    //Aquí actualizamos los costes del NodeRecord
+                    // Aquí actualizamos los costes del NodeRecord
                     endNodeRecord = new Node();
                     endNodeRecord.vertexId = endNode.vertexId;
                     endNodeRecord.costSoFar = endNodeCost;
                     endNodeRecord.prevNode = current;
                     endNodeRecord.estimatedTotalCost = endNodeCost + endNodeHeuristic;
 
-                    //Se añade a la lista 
+                    // Se añade a la lista 
                     if (!open.Contains(endNodeRecord))
                     {
                         open.Push(endNodeRecord);
                     }
                 }
 
-                //Al visitar las conexiones de este nodo, lo podemos
-                //añadir a la lista de closed
+                // Al visitar las conexiones de este nodo, lo podemos
+                // añadir a la lista de closed
                 closed.Push(current);
-
             }
 
             Vertex currentVertex = vertices[current.vertexId];
-            //Caso en el que no hemos encontrado la salida
+            // Caso en el que no hemos encontrado la salida
             if (currentVertex != destiny)
             {
                 //Debug.Log("No se puede alcanzar la salida " + dstO.name + " desde " + srcO.name);
                 return null;
             }
 
-            //Recorremos la lista de manera inversa, viajando por los previos
+            // Recorremos la lista de manera inversa, viajando por los previos
             Node aux = new Node();
             List<int> inversePath = new List<int>();
             while (current.vertexId != origin.id)
             {
                 inversePath.Add(current.vertexId);
-                //Podemos usar un auxiliar que solo almacene el vertex id ya que es lo único que necesita para hacer el find
                 current = current.prevNode;
 
+                // El combustible se gasta al moverse a la casilla
                 currentGas -= vertices[current.vertexId].cost;
+                // Y se puede recargar con el valor que la casilla indique (caso de los bidones)
                 currentGas += vertices[current.vertexId].gas;
 
                 if (currentGas < 1) { ranOut = true; break; }
@@ -321,15 +336,25 @@ namespace IAV23.ElisaTodd
 
             gas = currentGas; // Actualizar el valor de la gasolina disponible
 
-            //Debug.Log("Finaliza con " + currentGas + " de gasolina.");
-            //Construimos el camino añadiendo los nodos a la lista, empezando por el final
+            // Construimos el camino añadiendo los nodos a la lista, empezando por el final
             return BuildPath(origin.id, destiny.id, inversePath);
         }
+
+        /// <summary>
+        /// Fijándose en el algoritmo del problema del vendedor ambulante, devuelve la lista de nodos
+        /// que componen la solución al problema de ir de un inicio a un final, pasando por unos
+        /// nodos obligatoriamente y usando combustible que se puede agotar
+        /// </summary>
+        /// <param name="srcO"> Objeto del que parte el camino </param>
+        /// <param name="dstO"> Objeto al que llega el camino </param>
+        /// <param name="heuristic"> Heurística que utiliza para valorar la distancia entre 2 puntos</param>
+        /// <returns></returns>
         public List<Vertex> SolveTSP(GameObject srcO, GameObject dstO, Heuristic heuristic)
         {
             Vertex origin = GetNearestVertex(srcO.transform.position);
             Vertex destiny = GetNearestVertex(dstO.transform.position);
 
+            // Busca los vértices que son imprescindibles: las estaciones
             List<Vertex> essentialVertices = new List<Vertex>();
             foreach (Vertex v in vertices)
             {
