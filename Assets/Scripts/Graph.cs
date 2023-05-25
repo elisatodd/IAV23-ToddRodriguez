@@ -1,14 +1,8 @@
 namespace IAV23.ElisaTodd
 {
-    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using UnityEditor.Experimental.GraphView;
-    using UnityEditor.MemoryProfiler;
     using UnityEngine;
-    using UnityEngine.UIElements;
-    using static IAV23.ElisaTodd.Graph;
-    using static UnityEngine.Rendering.DebugUI;
 
     public abstract class Graph : MonoBehaviour
     {
@@ -25,6 +19,9 @@ namespace IAV23.ElisaTodd
 
         // Used for getting path in frames
         public List<Vertex> path;
+
+        public delegate void InvalidMapDelegate(bool unreachable);
+        public static event InvalidMapDelegate InvalidMap;
 
         public virtual void Start()
         {
@@ -191,6 +188,12 @@ namespace IAV23.ElisaTodd
 
         public List<Vertex> GetPathMyAstar(GameObject srcO, GameObject dstO, ref float gas, Heuristic h = null)
         {
+            if (gas <= 0)
+            {
+                Debug.Log("La gasolina inicial no es suficiente para completar el camino.");
+                return null;
+            }
+
             float currentGas = gas;
             bool ranOut = false;
 
@@ -290,7 +293,7 @@ namespace IAV23.ElisaTodd
             //Caso en el que no hemos encontrado la salida
             if (currentVertex != destiny)
             {
-                Debug.Log("No se puede alcanzar la salida " + dstO.name + " desde " + srcO.name);
+                //Debug.Log("No se puede alcanzar la salida " + dstO.name + " desde " + srcO.name);
                 return null;
             }
 
@@ -312,11 +315,13 @@ namespace IAV23.ElisaTodd
             // Caso de gasolina insuficiente
             if (ranOut)
             {
-                Debug.Log("La gasolina no es suficiente para completar este nivel");
+                //Debug.Log("La gasolina no es suficiente para completar este camino");
                 return null;
             }
-            
-            Debug.Log("Finaliza con " + currentGas + " de gasolina.");
+
+            gas = currentGas; // Actualizar el valor de la gasolina disponible
+
+            //Debug.Log("Finaliza con " + currentGas + " de gasolina.");
             //Construimos el camino añadiendo los nodos a la lista, empezando por el final
             return BuildPath(origin.id, destiny.id, inversePath);
         }
@@ -339,9 +344,12 @@ namespace IAV23.ElisaTodd
             List<Vertex> shortestPath = null;
             float shortestLength = float.PositiveInfinity;
 
+            bool allEssentialVisited = false; // Variable para verificar si se visitaron todos los nodos esenciales
+
             // Iterate through each permutation
             foreach (List<Vertex> permutation in essentialPermutations)
             {
+                float gasoline = GameManager.instance.GasInitialLevel;
                 // Include the source and destination vertices
                 permutation.Insert(0, origin);
                 permutation.Add(destiny);
@@ -350,27 +358,32 @@ namespace IAV23.ElisaTodd
                 float length = 0;
                 List<Vertex> completePath = new List<Vertex>();
 
-                List<bool> visitedStation = new List<bool>();
-
                 // Iterate through each vertex in the modified permutation
                 for (int i = 0; i < permutation.Count - 1; i++)
                 {
                     Vertex start = permutation[i];
                     Vertex end = permutation[i + 1];
 
+                    // Verificar gasolina disponible antes de calcular el camino
+                    if (gasoline <= 0)
+                    {
+                        length = float.PositiveInfinity; // Camino inválido, se queda sin gasolina
+                        break;
+                    }
+
                     // Get the path between the current start and end vertices
-                    float gasoline = GameManager.instance.GasLevel;
                     List<Vertex> path = GetPathMyAstar(start.gameObject, end.gameObject, ref gasoline, heuristic);
-                    path.Reverse();
 
                     if (path == null)
                     {
                         length = float.PositiveInfinity; // Invalid path, set length to infinity
-                        visitedStation[i] = false;
                         break;
                     }
 
-                    visitedStation[i] = true;
+                    path.Reverse();
+
+                    // Actualizar el valor de la gasolina disponible
+                    //GameManager.instance.GasLevel = (int)gasoline;
 
                     // Add the vertices to the solution
                     completePath.AddRange(path.GetRange(0, path.Count));
@@ -379,16 +392,39 @@ namespace IAV23.ElisaTodd
                 }
 
                 // Check if the current permutation is the shortest so far
-                bool visitedAll = visitedStation.All(b => b == true);
+                bool visitedAll = (length < float.PositiveInfinity);
                 if (visitedAll && length < shortestLength)
                 {
                     shortestLength = length;
                     shortestPath = completePath;
+                    allEssentialVisited = true; 
                 }
             }
 
-            shortestPath.Insert(0, origin);
-            return shortestPath;
+            if (!allEssentialVisited)
+            {
+                // El mapa es inválido --> no se pudieron visitar todas las estaciones
+                Debug.Log("El mapa es inválido --> no se pudieron visitar todas las estaciones");
+               // GameManager.instance.GasLevel = GameManager.instance.GasInitialLevel; // Restaurar el valor inicial de la gasolina
+            }
+            else
+            {
+                // El camino fue completado exitosamente, actualizar el valor de la gasolina disponible
+                Debug.Log("El mapa es válido --> se pueden visitar todas las estaciones");
+                // GameManager.instance.GasLevel = GetPathGasWaste(path);
+            }
+
+            if (shortestPath != null)
+            {
+                shortestPath.Insert(0, origin);
+                return shortestPath;
+            }
+            else
+            {
+                Debug.Log("Mapa inválido. Ver motivo.");
+                InvalidMap(allEssentialVisited); // pasa por param. el motivo de la invalidez
+                return null;
+            }
         }
         public List<Vertex> SolveTSPOptimized(GameObject srcO, GameObject dstO, Heuristic heuristic)
         {
@@ -451,6 +487,17 @@ namespace IAV23.ElisaTodd
             return bestPath;
         }
 
+        private int GetPathGasWaste(List<Vertex> path)
+        {
+            int gas = 0;
+            foreach (Vertex v in path)
+            {
+                gas += (int)v.cost;
+                gas -= v.gas;
+            }
+
+            return gas;
+        }
         private float CalculatePathLength(List<Vertex> path, Heuristic heuristic)
         {
             float length = 0;

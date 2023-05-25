@@ -228,6 +228,9 @@ namespace IAV23.ElisaTodd
         // Dibuja el hilo de Ariadna
         public virtual void DibujaHilo()
         {
+            if (path == null)
+                return;
+
             List<Vertex> reversedPath = GetReversedPath(path);
 
             hilo.positionCount = reversedPath.Count + 1;
