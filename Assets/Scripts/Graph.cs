@@ -199,13 +199,15 @@ namespace IAV23.ElisaTodd
         /// <param name="srcO"> Objeto del que parte el camino </param>
         /// <param name="dstO"> Objeto al que llega el camino </param>
         /// <param name="gas"> Combustible que tiene para realizar el recorrido </param>
+        /// <param name="gasRanOut"> Indica si la gasolina fue suficiente para hacer el recorrido </param>
         /// <param name="h"> Heurística que utiliza para valorar la distancia entre 2 puntos </param>
         /// <returns> Una lista con los vértices que componen el camino </returns>
-        public List<Vertex> GetPathMyAstar(GameObject srcO, GameObject dstO, ref float gas, Heuristic h = null)
+        public List<Vertex> GetPathMyAstar(GameObject srcO, GameObject dstO, ref float gas, ref bool gasRanOut, Heuristic h = null)
         {
             if (gas <= 0)
             {
                 Debug.Log("La gasolina inicial no es suficiente para completar el camino.");
+                gasRanOut = true;
                 return null;
             }
 
@@ -330,6 +332,7 @@ namespace IAV23.ElisaTodd
             if (ranOut)
             {
                 //Debug.Log("La gasolina no es suficiente para completar este camino");
+                gasRanOut = true;
                 return null;
             }
 
@@ -369,6 +372,7 @@ namespace IAV23.ElisaTodd
             float shortestLength = float.PositiveInfinity;
 
             bool allEssentialVisited = false; // Variable para verificar si se visitaron todos los nodos esenciales
+            bool gasolineWasted = false;
 
             // Iterar por cada permutación posible
             foreach (List<Vertex> permutation in essentialPermutations)
@@ -397,13 +401,22 @@ namespace IAV23.ElisaTodd
                     }
 
                     // Se calcula la distancia entre cada vértice desde la permutación
-                    List<Vertex> path = GetPathMyAstar(start.gameObject, end.gameObject, ref gasoline, heuristic);
+                    bool gasRanOut = false;
+                    List<Vertex> path = GetPathMyAstar(start.gameObject, end.gameObject, ref gasoline, ref gasRanOut, heuristic);
 
                     if (path == null)
                     {
                         length = float.PositiveInfinity; // Camino no válido
+
+                        if (gasRanOut)
+                        {
+                            gasolineWasted = true;
+                        }
+
                         break;
                     }
+
+                    gasolineWasted = false;
 
                     path.Reverse();
 
@@ -441,7 +454,7 @@ namespace IAV23.ElisaTodd
             else
             {
                 // Si no se ha conseguido completar el camino
-                InvalidMap(allEssentialVisited); // pasa por param. el motivo de la invalidez
+                InvalidMap(gasolineWasted); // pasa por param. el motivo de la invalidez
                 return null;
             }
         }

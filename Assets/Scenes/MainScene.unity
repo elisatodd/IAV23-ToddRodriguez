@@ -1863,7 +1863,7 @@ PrefabInstance:
       objectReference: {fileID: 1329882235}
     - target: {fileID: 160909590899818930, guid: 4e593e290fbe6c94f91c692cb9e312cf, type: 3}
       propertyPath: gasInitialLevel
-      value: 10
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: 160909590899818931, guid: 4e593e290fbe6c94f91c692cb9e312cf, type: 3}
       propertyPath: m_Name

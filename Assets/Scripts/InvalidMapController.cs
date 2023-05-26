@@ -21,10 +21,10 @@ namespace IAV23.ElisaTodd
             Graph.InvalidMap -= ShowText;
         }
 
-        private void ShowText(bool unreachable)
+        private void ShowText(bool gasolineWasted)
         {
-            unreachableError.SetActive(unreachable);
-            gasolineError.SetActive(!unreachable);
+            unreachableError.SetActive(!gasolineWasted);
+            gasolineError.SetActive(gasolineWasted);
         }
     }
 }

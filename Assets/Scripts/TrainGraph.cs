@@ -119,7 +119,6 @@ namespace IAV23.ElisaTodd
             switch (algorithm)
             {
                 case TesterGraphAlgorithm.ASTAR:
-                    //path = graph.GetPathMyAstar(srcObj, dstObj, Manhattan);
                     path = graph.SolveTSP(srcObj, dstObj, Manhattan);
                     break;
                 default: break;
