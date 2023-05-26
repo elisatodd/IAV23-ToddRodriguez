@@ -55,7 +55,6 @@ namespace IAV23.ElisaTodd
                 return new Vertex[0];
             return neighbourVertex[v.id].ToArray();
         }
-
         public virtual float[] GetNeighboursCosts(Vertex v)
         {
             if (ReferenceEquals(neighbourVertex, null) || neighbourVertex.Count == 0 ||
@@ -354,7 +353,7 @@ namespace IAV23.ElisaTodd
             Vertex origin = GetNearestVertex(srcO.transform.position);
             Vertex destiny = GetNearestVertex(dstO.transform.position);
 
-            // Busca los vértices que son imprescindibles: las estaciones
+            // Guarda los vértices que son imprescindibles: las estaciones
             List<Vertex> essentialVertices = new List<Vertex>();
             foreach (Vertex v in vertices)
             {
@@ -362,28 +361,29 @@ namespace IAV23.ElisaTodd
                     essentialVertices.Add(v);
             }
 
-            // Generate all possible permutations of the essential vertices
+            // Se generan todas las permutaciones o variaciones posibles con esos vértices
             List<List<Vertex>> essentialPermutations = GeneratePermutations(essentialVertices);
 
-            // Initialize the shortest path and its length
+            // Se crean variables para guardar el mejor camino encontrado
             List<Vertex> shortestPath = null;
             float shortestLength = float.PositiveInfinity;
 
             bool allEssentialVisited = false; // Variable para verificar si se visitaron todos los nodos esenciales
 
-            // Iterate through each permutation
+            // Iterar por cada permutación posible
             foreach (List<Vertex> permutation in essentialPermutations)
             {
                 float gasoline = GameManager.instance.GasInitialLevel;
-                // Include the source and destination vertices
+
+                // Se deben incluir los vértices de entrada y salida,
+                // siempre en la primera y última posición
                 permutation.Insert(0, origin);
                 permutation.Add(destiny);
 
-                // Calculate the length of the current permutation
                 float length = 0;
                 List<Vertex> completePath = new List<Vertex>();
 
-                // Iterate through each vertex in the modified permutation
+                // Iterar por cada vértice de la permutación
                 for (int i = 0; i < permutation.Count - 1; i++)
                 {
                     Vertex start = permutation[i];
@@ -396,27 +396,24 @@ namespace IAV23.ElisaTodd
                         break;
                     }
 
-                    // Get the path between the current start and end vertices
+                    // Se calcula la distancia entre cada vértice desde la permutación
                     List<Vertex> path = GetPathMyAstar(start.gameObject, end.gameObject, ref gasoline, heuristic);
 
                     if (path == null)
                     {
-                        length = float.PositiveInfinity; // Invalid path, set length to infinity
+                        length = float.PositiveInfinity; // Camino no válido
                         break;
                     }
 
                     path.Reverse();
 
-                    // Actualizar el valor de la gasolina disponible
-                    //GameManager.instance.GasLevel = (int)gasoline;
-
-                    // Add the vertices to the solution
+                    // Añadir los vértices a la solución
                     completePath.AddRange(path.GetRange(0, path.Count));
 
                     length += CalculatePathLength(path, heuristic);
                 }
 
-                // Check if the current permutation is the shortest so far
+                // Comprueba si la permutación calculada es mejor solución
                 bool visitedAll = (length < float.PositiveInfinity);
                 if (visitedAll && length < shortestLength)
                 {
@@ -426,17 +423,14 @@ namespace IAV23.ElisaTodd
                 }
             }
 
+            // Si no se han visitado todos los vértices esenciales
             if (!allEssentialVisited)
             {
-                // El mapa es inválido --> no se pudieron visitar todas las estaciones
                 Debug.Log("El mapa es inválido --> no se pudieron visitar todas las estaciones");
-               // GameManager.instance.GasLevel = GameManager.instance.GasInitialLevel; // Restaurar el valor inicial de la gasolina
             }
             else
             {
-                // El camino fue completado exitosamente, actualizar el valor de la gasolina disponible
                 Debug.Log("El mapa es válido --> se pueden visitar todas las estaciones");
-                // GameManager.instance.GasLevel = GetPathGasWaste(path);
             }
 
             if (shortestPath != null)
@@ -446,83 +440,18 @@ namespace IAV23.ElisaTodd
             }
             else
             {
-                Debug.Log("Mapa inválido. Ver motivo.");
+                // Si no se ha conseguido completar el camino
                 InvalidMap(allEssentialVisited); // pasa por param. el motivo de la invalidez
                 return null;
             }
         }
-        public List<Vertex> SolveTSPOptimized(GameObject srcO, GameObject dstO, Heuristic heuristic)
-        {
-            Vertex origin = GetNearestVertex(srcO.transform.position);
-            Vertex destiny = GetNearestVertex(dstO.transform.position);
 
-            List<Vertex> essentialVertices = new List<Vertex>();
-            List<Vertex> additionalVertices = new List<Vertex>();
-            foreach (Vertex v in vertices)
-            {
-                if (v.essential)
-                    essentialVertices.Add(v);
-                else if (v != origin && v != destiny)
-                    additionalVertices.Add(v);
-            }
-
-            // Initialize the shortest path and its length
-            List<Vertex> bestPath = null;
-            float bestLength = float.PositiveInfinity;
-
-            // Iterate through each permutation
-            foreach (Vertex initialVertex in essentialVertices)
-            {
-                List<Vertex> currentRoute = new List<Vertex>() { origin, initialVertex, destiny };
-                float currentLength = CalculatePathLength(currentRoute, heuristic);
-
-                foreach (Vertex vertex in essentialVertices)
-                {
-                    if (!currentRoute.Contains(vertex))
-                    {
-                        float bestInsertionLength = float.PositiveInfinity;
-                        int bestPosition = -1;
-
-                        for (int i = 1; i < currentRoute.Count; i++)
-                        {
-                            List<Vertex> tempRoute = new List<Vertex>(currentRoute);
-                            tempRoute.Insert(i, vertex);
-
-                            float insertionLength = CalculatePathLength(tempRoute, heuristic);
-
-                            if (insertionLength < bestInsertionLength)
-                            {
-                                bestInsertionLength = insertionLength;
-                                bestPosition = i;
-                            }
-                        }
-
-                        if (bestPosition != -1)
-                            currentRoute.Insert(bestPosition, vertex);
-                    }
-                }
-
-                if (currentLength < bestLength)
-                {
-                    bestLength = currentLength;
-                    bestPath = currentRoute;
-                }
-            }
-            bestPath.Insert(0, origin);
-            return bestPath;
-        }
-
-        private int GetPathGasWaste(List<Vertex> path)
-        {
-            int gas = 0;
-            foreach (Vertex v in path)
-            {
-                gas += (int)v.cost;
-                gas -= v.gas;
-            }
-
-            return gas;
-        }
+        /// <summary>
+        /// Calcula la longitud de un camino según lo que determine la heurística
+        /// </summary>
+        /// <param name="path"> Camino del que se quiere saber la longitud </param>
+        /// <param name="heuristic"> Heurística para determinar la longitud </param>
+        /// <returns> Devuelve la longitud del camino </returns>
         private float CalculatePathLength(List<Vertex> path, Heuristic heuristic)
         {
             float length = 0;
@@ -535,12 +464,25 @@ namespace IAV23.ElisaTodd
             }
             return length;
         }
+
+        /// <summary>
+        /// Genera todas las permutaciones posibles dada una lista de vértices
+        /// </summary>
+        /// <param name="goals"> Vértices que se quieren combinar </param>
+        /// <returns> Lista de listas de vértices, ordenada cada una de forma distinta </returns>
         private List<List<Vertex>> GeneratePermutations(List<Vertex> goals)
         {
             List<List<Vertex>> permutations = new List<List<Vertex>>();
             GeneratePermutationsHelper(goals, 0, permutations);
             return permutations;
         }
+
+        /// <summary>
+        /// Método recursivo para calcular las permutaciones posibles dada una lista de vértices
+        /// </summary>
+        /// <param name="goals"> vértices que se tienen que permutar </param>
+        /// <param name="start"> índice del primer vértice de la permutación que se va a generar ahora </param>
+        /// <param name="permutations"> permutaciones generadas hasta el momento </param>
         private void GeneratePermutationsHelper(List<Vertex> goals, int start, List<List<Vertex>> permutations)
         {
             if (start == goals.Count - 1)
@@ -557,52 +499,20 @@ namespace IAV23.ElisaTodd
                 }
             }
         }
+
+        /// <summary>
+        /// Intercambia las posiciones de dos elementos dentro de una lista
+        /// </summary>
+        /// <param name="goals"> lista que se quiere modificar </param>
+        /// <param name="i"> posición de uno de los elementos a intercambiar </param>
+        /// <param name="j"> posición de uno de los elementos a intercambiar </param>
         private void Swap(List<Vertex> goals, int i, int j)
         {
             Vertex temp = goals[i];
             goals[i] = goals[j];
             goals[j] = temp;
         }
-        public List<Vertex> Smooth(List<Vertex> inputPath)
-        {
-            // IMPLEMENTAR SUAVIZADO DE CAMINOS, MODIFICADO
 
-            //Si el camino tiene solo dos nodos, regresamos
-            if (inputPath.Count <= 2)
-                return inputPath;
-
-            List<Vertex> outputPath = new List<Vertex>();
-            outputPath.Add(inputPath[0]);
-
-            // Keep track of where we are in the input path. We start at 2,
-            // because we assume two adjacent nodes will pass the ray cast.
-            int inputIndex = 2;
-            RaycastHit hit;
-            //iteramos hasta encontrar el último item de inputPath
-            while (inputIndex < inputPath.Count - 1)
-            {
-                //Hacemos el raycast
-                Vector3 fromPt = outputPath[outputPath.Count - 1].transform.position;
-                fromPt += new Vector3(0.0f, 3.0f, 0.0f);
-                Vector3 toPt = inputPath[inputIndex].transform.position;
-                Ray r = new Ray(fromPt, toPt - fromPt);
-                //Si el raycast no ha colisionado con otro vértice
-                if (!Physics.Raycast(r, out hit, 10))
-                {
-
-                    //Al fallar el raycast, hay que añadir el último nodo a la output list
-                    outputPath.Add(inputPath[inputIndex - 1]);
-                }
-                else if (hit.transform.gameObject.layer != outputPath[0].gameObject.layer)
-                {
-                    outputPath.Add(inputPath[inputIndex - 1]);
-                }
-                inputIndex++;
-            }
-            outputPath.Add(inputPath[inputPath.Count - 1]);
-
-            return outputPath;
-        }
         // Reconstruir el camino, dando la vuelta a la lista de nodos 'padres' /previos que hemos ido anotando
         private List<Vertex> BuildPath(int srcId, int dstId, List<int> prevList)
         {
