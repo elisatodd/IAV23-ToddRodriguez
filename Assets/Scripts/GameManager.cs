@@ -1,13 +1,10 @@
-
 namespace IAV23.ElisaTodd
 {
-    using System;
-    using System.Collections;
     using System.Collections.Generic;
     using UnityEngine;
     using UnityEngine.SceneManagement;
     using UnityEngine.UI;
-    using UnityEngine.UIElements;
+
     public class GameManager : MonoBehaviour
     {
         public static GameManager instance = null;
@@ -39,7 +36,6 @@ namespace IAV23.ElisaTodd
         float m_timeCounter = 0.0f;
         float m_lastFramerate = 0.0f;
         float m_refreshTime = 0.5f;
-
 
         GameObject exitSlab = null;
         GameObject startSlab = null;

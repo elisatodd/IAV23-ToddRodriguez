@@ -5,24 +5,22 @@ namespace IAV23.ElisaTodd
     public class Node : IComparable<Node>
     {
 
-        public int vertexId; // current path vertex id
+        public int vertexId; // id actual
         public Node prevNode; // guardamos el nodo completo en lugar de solo el id del vértice
-        public float costSoFar; // cost from temp path made
-        public float estimatedTotalCost; // estimate cost 
+        public float costSoFar; // coste temporal calculado hasta el momento
+        public float estimatedTotalCost; // coste estimado
 
         public int CompareTo(Node other)
         {
             return (int)(this.estimatedTotalCost - other.estimatedTotalCost);
         }
 
-        //Modificado
         public bool Equals(Node other)
         {
             if (other == null) return false;
             return (other.vertexId == this.vertexId);
         }
 
-        //Modificado
         public override bool Equals(object obj)
         {
             if (obj == null) return false;

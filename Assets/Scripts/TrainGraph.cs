@@ -28,7 +28,7 @@ namespace IAV23.ElisaTodd
 
         [SerializeField] private string obstacleTag = "Obstacle"; // Etiqueta de un nodo obstáculo (rocas, casas y árboles)
 
-        [SerializeField] private Color pathColor; // TO DO : refactorizar  
+        [SerializeField] private Color pathColor;
         [SerializeField]
         [Range(0.1f, 1f)]
         private float pathNodeRadius = .3f;
@@ -49,7 +49,6 @@ namespace IAV23.ElisaTodd
 
         private bool simulationActive = false;
 
-        // Despertar inicializando esto
         public virtual void Awake()
         {
             mainCamera = Camera.main;
@@ -209,23 +208,7 @@ namespace IAV23.ElisaTodd
             }
         }
 
-        // Cuantificación, cómo traduce de posiciones del espacio (la pantalla) a nodos
-        private GameObject GetNodeFromScreen(Vector3 screenPosition)
-        {
-            GameObject node = null;
-            Ray ray = mainCamera.ScreenPointToRay(screenPosition);
-            RaycastHit[] hits = Physics.RaycastAll(ray);
-            foreach (RaycastHit h in hits)
-            {
-                if (!h.collider.CompareTag(vertexTag) && !h.collider.CompareTag(obstacleTag))
-                    continue;
-                node = h.collider.gameObject;
-                break;
-            }
-            return node;
-        }
-
-        // Dibuja el hilo de Ariadna
+        // Dibuja el hilo
         public virtual void DibujaHilo()
         {
             if (path == null)
@@ -248,19 +231,12 @@ namespace IAV23.ElisaTodd
             reUpdatePath = mode;
         }
 
-        public string ChangeHeuristic()
-        {
-            // Está preparado para tener 2 heurísticas diferentes
-            firstHeuristic = !firstHeuristic;
-            return firstHeuristic ? "Euclidea" : "Manhattan";
-        }
-
         public virtual void ResetPath()
         {
             path = null;
         }
 
-        public virtual void setDestiny(GameObject gO)
+        public virtual void SetDestiny(GameObject gO)
         {
             dstObj = gO;
         }

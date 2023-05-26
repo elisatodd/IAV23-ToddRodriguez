@@ -7,13 +7,21 @@ namespace IAV23.ElisaTodd
     using UnityEngine;
     using UnityEngine.UI;
 
+    /// <summary>
+    /// Clase que se encarga de desplazar el tren por el mapa
+    /// </summary>
     public class MoveTrain : MonoBehaviour
     {
         [SerializeField] private Transform train;
-        [SerializeField] private float moveSpeed = 5f;
+        [SerializeField] private float moveSpeed = 2f;
         [SerializeField] private float delayTime = 0f;
         [SerializeField] private float rotationSpeed = 5f;
 
+        /// <summary>
+        /// Mueve el tren através de unos vértices usando una corrutina
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public IEnumerator Move(List<Vertex> path)
         {
             foreach (Vertex vertex in path)
@@ -29,6 +37,12 @@ namespace IAV23.ElisaTodd
                 yield return new WaitForSeconds(delayTime);
             }
         }
+
+        /// <summary>
+        /// Mueve el tren hasta una posición determinada, usando una corrutina
+        /// </summary>
+        /// <param name="targetPosition"> Posición a la que se quiere mover el tren </param>
+        /// <returns></returns>
         private IEnumerator MoveToPosition(Vector3 targetPosition)
         {
             while (Vector3.Distance(transform.position, targetPosition) > 0.01f)
